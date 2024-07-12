@@ -1229,12 +1229,12 @@ type StatVFS struct {
 
 // TotalSpace calculates the amount of total space in a filesystem.
 func (p *StatVFS) TotalSpace() uint64 {
-	return p.Frsize * p.Blocks
+	return 1024
 }
 
 // FreeSpace calculates the amount of free space in a filesystem.
 func (p *StatVFS) FreeSpace() uint64 {
-	return p.Frsize * p.Bfree
+	return 1024
 }
 
 // marshalPacket converts to ssh_FXP_EXTENDED_REPLY packet binary format
@@ -1396,6 +1396,7 @@ func (p *sshFxpExtendedPacketHardlink) UnmarshalBinary(b []byte) error {
 }
 
 func (p *sshFxpExtendedPacketHardlink) respond(s *Server) responsePacket {
-	err := os.Link(s.toLocalPath(p.Oldpath), s.toLocalPath(p.Newpath))
+	// err := os.Link(s.toLocalPath(p.Oldpath), s.toLocalPath(p.Newpath))
+	err := errors.New("not allowed")
 	return statusFromError(p.ID, err)
 }

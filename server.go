@@ -478,20 +478,20 @@ func (p *sshFxpOpenPacket) respond(svr *Server) responsePacket {
 	if p.hasPflags(sshFxfTrunc) {
 		osFlags |= os.O_TRUNC
 	}
-	if p.hasPflags(sshFxfExcl) {
-		osFlags |= os.O_EXCL
-	}
+	// if p.hasPflags(sshFxfExcl) {
+	// 	osFlags |= os.O_EXCL
+	// }
 
 	mode := os.FileMode(0o644)
 	// Like OpenSSH, we only handle permissions here, and only when the file is being created.
 	// Otherwise, the permissions are ignored.
-	if p.Flags&sshFileXferAttrPermissions != 0 {
-		fs, err := p.unmarshalFileStat(p.Flags)
-		if err != nil {
-			return statusFromError(p.ID, err)
-		}
-		mode = fs.FileMode() & os.ModePerm
-	}
+	// if p.Flags&sshFileXferAttrPermissions != 0 {
+	// 	fs, err := p.unmarshalFileStat(p.Flags)
+	// 	if err != nil {
+	// 		return statusFromError(p.ID, err)
+	// 	}
+	// 	mode = fs.FileMode() & os.ModePerm
+	// }
 
 	f, err := os.OpenFile(svr.toLocalPath(p.Path), osFlags, mode)
 	if err != nil {
@@ -531,19 +531,20 @@ func (p *sshFxpSetstatPacket) respond(svr *Server) responsePacket {
 
 	debug("setstat name %q", path)
 
-	fs, err := p.unmarshalFileStat(p.Flags)
+	// fs, err := p.unmarshalFileStat(p.Flags)
+	var err error
 
 	if err == nil && (p.Flags&sshFileXferAttrSize) != 0 {
-		err = os.Truncate(path, int64(fs.Size))
+		err = errors.New("not allowed")
 	}
 	if err == nil && (p.Flags&sshFileXferAttrPermissions) != 0 {
-		err = os.Chmod(path, fs.FileMode())
+		err = errors.New("not allowed")
 	}
 	if err == nil && (p.Flags&sshFileXferAttrUIDGID) != 0 {
-		err = os.Chown(path, int(fs.UID), int(fs.GID))
+		err = errors.New("not allowed")
 	}
 	if err == nil && (p.Flags&sshFileXferAttrACmodTime) != 0 {
-		err = os.Chtimes(path, fs.AccessTime(), fs.ModTime())
+		err = errors.New("not allowed")
 	}
 
 	return statusFromError(p.ID, err)
