@@ -97,10 +97,10 @@ func makePacket(p rxPacket) (requestPacket, error) {
 		pkt = &sshFxpWritePacket{}
 	case sshFxpFstat:
 		pkt = &sshFxpFstatPacket{}
-	case sshFxpSetstat:
-		pkt = &sshFxpSetstatPacket{}
-	case sshFxpFsetstat:
-		pkt = &sshFxpFsetstatPacket{}
+	// case sshFxpSetstat:
+	// 	pkt = &sshFxpSetstatPacket{}
+	// case sshFxpFsetstat:
+	// 	pkt = &sshFxpFsetstatPacket{}
 	case sshFxpOpendir:
 		pkt = &sshFxpOpendirPacket{}
 	case sshFxpReaddir:
@@ -117,12 +117,12 @@ func makePacket(p rxPacket) (requestPacket, error) {
 		pkt = &sshFxpStatPacket{}
 	case sshFxpRename:
 		pkt = &sshFxpRenamePacket{}
-	case sshFxpReadlink:
-		pkt = &sshFxpReadlinkPacket{}
-	case sshFxpSymlink:
-		pkt = &sshFxpSymlinkPacket{}
-	case sshFxpExtended:
-		pkt = &sshFxpExtendedPacket{}
+	// case sshFxpReadlink:
+	// 	pkt = &sshFxpReadlinkPacket{}
+	// case sshFxpSymlink:
+	// 	pkt = &sshFxpSymlinkPacket{}
+	// case sshFxpExtended:
+	// 	pkt = &sshFxpExtendedPacket{}
 	default:
 		return nil, fmt.Errorf("unhandled packet type: %s", p.pktType)
 	}

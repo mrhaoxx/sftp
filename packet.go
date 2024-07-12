@@ -1314,8 +1314,8 @@ func (p *sshFxpExtendedPacket) UnmarshalBinary(b []byte) error {
 		p.SpecificPacket = &sshFxpExtendedPacketStatVFS{}
 	case "posix-rename@openssh.com":
 		p.SpecificPacket = &sshFxpExtendedPacketPosixRename{}
-	case "hardlink@openssh.com":
-		p.SpecificPacket = &sshFxpExtendedPacketHardlink{}
+	// case "hardlink@openssh.com":
+	// 	p.SpecificPacket = &sshFxpExtendedPacketHardlink{}
 	default:
 		return fmt.Errorf("packet type %v: %w", p.SpecificPacket, errUnknownExtendedPacket)
 	}

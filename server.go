@@ -250,26 +250,26 @@ func handlePacket(s *Server, p orderedRequest) error {
 	case *sshFxpRenamePacket:
 		err := os.Rename(s.toLocalPath(p.Oldpath), s.toLocalPath(p.Newpath))
 		rpkt = statusFromError(p.ID, err)
-	case *sshFxpSymlinkPacket:
-		err := os.Symlink(s.toLocalPath(p.Targetpath), s.toLocalPath(p.Linkpath))
-		rpkt = statusFromError(p.ID, err)
+	// case *sshFxpSymlinkPacket:
+	// err := os.Symlink(s.toLocalPath(p.Targetpath), s.toLocalPath(p.Linkpath))
+	// rpkt = statusFromError(p.ID, err)
 	case *sshFxpClosePacket:
 		rpkt = statusFromError(p.ID, s.closeHandle(p.Handle))
-	case *sshFxpReadlinkPacket:
-		f, err := os.Readlink(s.toLocalPath(p.Path))
-		rpkt = &sshFxpNamePacket{
-			ID: p.ID,
-			NameAttrs: []*sshFxpNameAttr{
-				{
-					Name:     f,
-					LongName: f,
-					Attrs:    emptyFileStat,
-				},
-			},
-		}
-		if err != nil {
-			rpkt = statusFromError(p.ID, err)
-		}
+	// case *sshFxpReadlinkPacket:
+	// 	f, err := os.Readlink(s.toLocalPath(p.Path))
+	// 	rpkt = &sshFxpNamePacket{
+	// 		ID: p.ID,
+	// 		NameAttrs: []*sshFxpNameAttr{
+	// 			{
+	// 				Name:     f,
+	// 				LongName: f,
+	// 				Attrs:    emptyFileStat,
+	// 			},
+	// 		},
+	// 	}
+	// 	if err != nil {
+	// 		rpkt = statusFromError(p.ID, err)
+	// 	}
 	case *sshFxpRealpathPacket:
 		f, err := filepath.Abs(s.toLocalPath(p.Path))
 		f = cleanPath(f)
