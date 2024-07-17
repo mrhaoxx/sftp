@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -239,7 +240,7 @@ func handlePacket(s *Server, p orderedRequest) error {
 		}
 	case *sshFxpMkdirPacket:
 		// TODO FIXME: ignore flags field
-		err := os.Mkdir(s.toLocalPath(p.Path), 0o755)
+		err := os.Mkdir(s.toLocalPath(p.Path), 0o750)
 		rpkt = statusFromError(p.ID, err)
 	case *sshFxpRmdirPacket:
 		err := os.Remove(s.toLocalPath(p.Path))
@@ -250,26 +251,26 @@ func handlePacket(s *Server, p orderedRequest) error {
 	case *sshFxpRenamePacket:
 		err := os.Rename(s.toLocalPath(p.Oldpath), s.toLocalPath(p.Newpath))
 		rpkt = statusFromError(p.ID, err)
-	case *sshFxpSymlinkPacket:
-		err := os.Symlink(s.toLocalPath(p.Targetpath), s.toLocalPath(p.Linkpath))
-		rpkt = statusFromError(p.ID, err)
+	// case *sshFxpSymlinkPacket:
+	// err := os.Symlink(s.toLocalPath(p.Targetpath), s.toLocalPath(p.Linkpath))
+	// rpkt = statusFromError(p.ID, err)
 	case *sshFxpClosePacket:
 		rpkt = statusFromError(p.ID, s.closeHandle(p.Handle))
-	case *sshFxpReadlinkPacket:
-		f, err := os.Readlink(s.toLocalPath(p.Path))
-		rpkt = &sshFxpNamePacket{
-			ID: p.ID,
-			NameAttrs: []*sshFxpNameAttr{
-				{
-					Name:     f,
-					LongName: f,
-					Attrs:    emptyFileStat,
-				},
-			},
-		}
-		if err != nil {
-			rpkt = statusFromError(p.ID, err)
-		}
+	// case *sshFxpReadlinkPacket:
+	// 	f, err := os.Readlink(s.toLocalPath(p.Path))
+	// 	rpkt = &sshFxpNamePacket{
+	// 		ID: p.ID,
+	// 		NameAttrs: []*sshFxpNameAttr{
+	// 			{
+	// 				Name:     f,
+	// 				LongName: f,
+	// 				Attrs:    emptyFileStat,
+	// 			},
+	// 		},
+	// 	}
+	// 	if err != nil {
+	// 		rpkt = statusFromError(p.ID, err)
+	// 	}
 	case *sshFxpRealpathPacket:
 		f, err := filepath.Abs(s.toLocalPath(p.Path))
 		f = cleanPath(f)
@@ -478,19 +479,27 @@ func (p *sshFxpOpenPacket) respond(svr *Server) responsePacket {
 	if p.hasPflags(sshFxfTrunc) {
 		osFlags |= os.O_TRUNC
 	}
-	if p.hasPflags(sshFxfExcl) {
-		osFlags |= os.O_EXCL
-	}
+	// if p.hasPflags(sshFxfExcl) {
+	// 	osFlags |= os.O_EXCL
+	// }
 
-	mode := os.FileMode(0o644)
+	mode := os.FileMode(0o640)
 	// Like OpenSSH, we only handle permissions here, and only when the file is being created.
 	// Otherwise, the permissions are ignored.
-	if p.Flags&sshFileXferAttrPermissions != 0 {
-		fs, err := p.unmarshalFileStat(p.Flags)
-		if err != nil {
+	// if p.Flags&sshFileXferAttrPermissions != 0 {
+	// 	fs, err := p.unmarshalFileStat(p.Flags)
+	// 	if err != nil {
+	// 		return statusFromError(p.ID, err)
+	// 	}
+	// 	mode = fs.FileMode() & os.ModePerm
+	// }
+
+	dir := path.Dir(svr.toLocalPath(p.Path))
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0o750); err != nil {
 			return statusFromError(p.ID, err)
 		}
-		mode = fs.FileMode() & os.ModePerm
 	}
 
 	f, err := os.OpenFile(svr.toLocalPath(p.Path), osFlags, mode)
@@ -531,19 +540,20 @@ func (p *sshFxpSetstatPacket) respond(svr *Server) responsePacket {
 
 	debug("setstat name %q", path)
 
-	fs, err := p.unmarshalFileStat(p.Flags)
+	// fs, err := p.unmarshalFileStat(p.Flags)
+	var err error
 
 	if err == nil && (p.Flags&sshFileXferAttrSize) != 0 {
-		err = os.Truncate(path, int64(fs.Size))
+		err = errors.New("not allowed")
 	}
 	if err == nil && (p.Flags&sshFileXferAttrPermissions) != 0 {
-		err = os.Chmod(path, fs.FileMode())
+		err = errors.New("not allowed")
 	}
 	if err == nil && (p.Flags&sshFileXferAttrUIDGID) != 0 {
-		err = os.Chown(path, int(fs.UID), int(fs.GID))
+		err = errors.New("not allowed")
 	}
 	if err == nil && (p.Flags&sshFileXferAttrACmodTime) != 0 {
-		err = os.Chtimes(path, fs.AccessTime(), fs.ModTime())
+		err = errors.New("not allowed")
 	}
 
 	return statusFromError(p.ID, err)
