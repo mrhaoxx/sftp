@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 	"sync"
@@ -492,6 +493,14 @@ func (p *sshFxpOpenPacket) respond(svr *Server) responsePacket {
 	// 	}
 	// 	mode = fs.FileMode() & os.ModePerm
 	// }
+
+	dir := path.Dir(svr.toLocalPath(p.Path))
+
+	if _, err := os.Stat(dir); os.IsNotExist(err) {
+		if err := os.MkdirAll(dir, 0o750); err != nil {
+			return statusFromError(p.ID, err)
+		}
+	}
 
 	f, err := os.OpenFile(svr.toLocalPath(p.Path), osFlags, mode)
 	if err != nil {
