@@ -544,16 +544,16 @@ func (p *sshFxpSetstatPacket) respond(svr *Server) responsePacket {
 	var err error
 
 	if err == nil && (p.Flags&sshFileXferAttrSize) != 0 {
-		err = errors.New("not allowed")
+		err = nil
 	}
 	if err == nil && (p.Flags&sshFileXferAttrPermissions) != 0 {
-		err = errors.New("not allowed")
+		err = nil
 	}
 	if err == nil && (p.Flags&sshFileXferAttrUIDGID) != 0 {
-		err = errors.New("not allowed")
+		err = nil
 	}
 	if err == nil && (p.Flags&sshFileXferAttrACmodTime) != 0 {
-		err = errors.New("not allowed")
+		err = nil
 	}
 
 	return statusFromError(p.ID, err)
